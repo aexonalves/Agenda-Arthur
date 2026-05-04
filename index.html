@@ -1,0 +1,701 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="apple-mobile-web-app-title" content="Agenda Arthur">
+<meta name="theme-color" content="#f8f7f4">
+<title>Agenda do Arthur · Turma 601</title>
+<link rel="manifest" href="manifest.json">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600&family=DM+Serif+Display&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #f8f7f4;
+    --surface: #ffffff;
+    --surface2: #f2f0ec;
+    --border: rgba(0,0,0,0.08);
+    --border2: rgba(0,0,0,0.14);
+    --text: #1a1917;
+    --text2: #6b6860;
+    --text3: #9e9b94;
+    --accent: #2d5be3;
+    --radius: 12px;
+    --radius-sm: 8px;
+    --shadow: 0 1px 3px rgba(0,0,0,0.06), 0 1px 2px rgba(0,0,0,0.04);
+    --shadow-md: 0 4px 12px rgba(0,0,0,0.08);
+
+    --port: #c04a20;
+    --port-bg: #fdf0eb;
+    --hist: #9a6010;
+    --hist-bg: #fdf5e6;
+    --ingl: #1a5298;
+    --ingl-bg: #eaf1fc;
+    --cien: #2d7a3a;
+    --cien-bg: #eaf6ec;
+    --geog: #0d6b56;
+    --geog-bg: #e5f5f1;
+    --mat:  #5040b8;
+    --mat-bg: #eeecfc;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+
+  body {
+    font-family: 'DM Sans', sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    min-height: 100vh;
+    font-size: 15px;
+    line-height: 1.5;
+  }
+
+  /* ── HEADER ── */
+  .app-header {
+    background: var(--surface);
+    border-bottom: 1px solid var(--border);
+    padding: 14px 16px 12px;
+    position: sticky; top: 0; z-index: 100;
+  }
+  .header-top {
+    display: flex; align-items: center; gap: 10px; margin-bottom: 10px;
+  }
+  .avatar {
+    width: 38px; height: 38px; border-radius: 50%;
+    background: #dce8fd; display: flex; align-items: center;
+    justify-content: center; font-weight: 600; font-size: 13px;
+    color: var(--ingl); flex-shrink: 0;
+  }
+  .header-name { font-size: 15px; font-weight: 600; color: var(--text); }
+  .header-sub { font-size: 12px; color: var(--text2); }
+  .sync-dot {
+    width: 7px; height: 7px; border-radius: 50%;
+    background: #22c55e; margin-left: auto; flex-shrink: 0;
+    box-shadow: 0 0 0 2px #dcfce7;
+  }
+  .sync-dot.offline { background: #f59e0b; box-shadow: 0 0 0 2px #fef3c7; }
+  .sync-dot.syncing { background: #3b82f6; box-shadow: 0 0 0 2px #dbeafe; animation: pulse 1s infinite; }
+  @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:.4} }
+
+  /* ── NOTICE ── */
+  .notice {
+    background: #fef9ec; border-left: 3px solid #f59e0b;
+    padding: 9px 14px; font-size: 12px; color: #92570a;
+    margin: 10px 16px 0; border-radius: 0 var(--radius-sm) var(--radius-sm) 0;
+    display: none;
+  }
+
+  /* ── STATS ── */
+  .stats-row {
+    display: grid; grid-template-columns: repeat(4,1fr); gap: 8px;
+    padding: 12px 16px 0;
+  }
+  .stat {
+    background: var(--surface); border-radius: var(--radius-sm);
+    border: 1px solid var(--border); padding: 10px 12px;
+    text-align: center;
+  }
+  .stat-label { font-size: 11px; color: var(--text3); margin-bottom: 2px; }
+  .stat-value { font-size: 20px; font-weight: 600; color: var(--text); }
+
+  /* ── TABS ── */
+  .tabs-bar {
+    display: flex; gap: 4px; padding: 10px 16px 0;
+    overflow-x: auto; scrollbar-width: none;
+  }
+  .tabs-bar::-webkit-scrollbar { display: none; }
+  .tab {
+    padding: 6px 14px; font-size: 13px; font-weight: 500;
+    border-radius: 20px; border: 1px solid var(--border2);
+    background: transparent; color: var(--text2);
+    cursor: pointer; white-space: nowrap; transition: all .15s;
+    font-family: 'DM Sans', sans-serif;
+  }
+  .tab:hover { background: var(--surface2); }
+  .tab.active {
+    background: var(--text); color: #fff; border-color: var(--text);
+  }
+  .filter-bar {
+    display: flex; gap: 4px; padding: 8px 16px 10px;
+    overflow-x: auto; scrollbar-width: none;
+  }
+  .filter-bar::-webkit-scrollbar { display: none; }
+  .filter {
+    padding: 5px 13px; font-size: 12px; font-weight: 500;
+    border-radius: 20px; border: 1px solid var(--border);
+    background: var(--surface); color: var(--text2);
+    cursor: pointer; white-space: nowrap; transition: all .15s;
+    font-family: 'DM Sans', sans-serif;
+  }
+  .filter.active { background: var(--surface2); color: var(--text); border-color: var(--border2); }
+
+  /* ── EVENTS ── */
+  .events-area { padding: 8px 16px 100px; }
+
+  .day-header {
+    font-size: 11px; font-weight: 600; letter-spacing: .06em;
+    color: var(--text3); text-transform: uppercase;
+    padding: 14px 0 8px; border-bottom: 1px solid var(--border);
+    margin-bottom: 8px;
+  }
+  .materia-label {
+    display: flex; align-items: center; gap: 6px;
+    font-size: 12px; font-weight: 600; color: var(--text);
+    margin: 10px 0 6px;
+  }
+  .dot { width: 7px; height: 7px; border-radius: 50%; flex-shrink: 0; }
+
+  .event-card {
+    background: var(--surface); border: 1px solid var(--border);
+    border-radius: var(--radius); padding: 11px 13px;
+    display: flex; align-items: flex-start; gap: 10px;
+    margin-bottom: 6px; box-shadow: var(--shadow);
+    cursor: pointer; transition: box-shadow .15s;
+  }
+  .event-card:hover { box-shadow: var(--shadow-md); }
+  .event-icon { font-size: 15px; margin-top: 1px; flex-shrink: 0; }
+  .event-body { flex: 1; min-width: 0; }
+  .event-title { font-size: 14px; font-weight: 500; color: var(--text); margin-bottom: 2px; }
+  .event-desc { font-size: 12px; color: var(--text2); }
+  .event-badge {
+    font-size: 11px; font-weight: 500; padding: 3px 9px;
+    border-radius: 20px; flex-shrink: 0; align-self: flex-start;
+  }
+  .badge-prova { background: #fee2e2; color: #991b1b; }
+  .badge-entrega { background: #dcfce7; color: #166534; }
+  .badge-tarefa { background: #f1f0ec; color: #57534e; }
+  .badge-remarcar { background: #fef3c7; color: #92570a; }
+
+  /* ── EMPTY ── */
+  .empty {
+    text-align: center; padding: 48px 24px;
+    color: var(--text3); font-size: 14px; line-height: 1.8;
+  }
+  .empty-icon { font-size: 36px; margin-bottom: 10px; }
+
+  /* ── FAB ── */
+  .fab {
+    position: fixed; bottom: 24px; right: 20px;
+    width: 52px; height: 52px; border-radius: 50%;
+    background: var(--text); color: #fff;
+    border: none; font-size: 24px; cursor: pointer;
+    box-shadow: 0 4px 16px rgba(0,0,0,0.2);
+    display: flex; align-items: center; justify-content: center;
+    transition: transform .15s, box-shadow .15s; z-index: 200;
+    font-family: 'DM Sans', sans-serif;
+  }
+  .fab:hover { transform: scale(1.05); box-shadow: 0 6px 20px rgba(0,0,0,0.25); }
+  .fab:active { transform: scale(0.96); }
+
+  /* ── MODAL ── */
+  .modal-overlay {
+    position: fixed; inset: 0; background: rgba(0,0,0,0.4);
+    z-index: 300; display: flex; align-items: flex-end;
+    opacity: 0; pointer-events: none; transition: opacity .2s;
+  }
+  .modal-overlay.open { opacity: 1; pointer-events: all; }
+  .modal {
+    background: var(--surface); width: 100%; max-width: 480px;
+    margin: 0 auto; border-radius: 20px 20px 0 0;
+    padding: 20px 20px 36px;
+    transform: translateY(100%); transition: transform .25s cubic-bezier(.4,0,.2,1);
+    max-height: 90vh; overflow-y: auto;
+  }
+  .modal-overlay.open .modal { transform: translateY(0); }
+  .modal-handle {
+    width: 36px; height: 4px; border-radius: 2px;
+    background: var(--border2); margin: 0 auto 18px;
+  }
+  .modal-title { font-size: 17px; font-weight: 600; margin-bottom: 16px; color: var(--text); }
+
+  .form-group { margin-bottom: 14px; }
+  .form-label { font-size: 12px; font-weight: 600; color: var(--text2); margin-bottom: 5px; display: block; text-transform: uppercase; letter-spacing: .04em; }
+  .form-input, .form-select, .form-textarea {
+    width: 100%; padding: 10px 13px; border: 1px solid var(--border2);
+    border-radius: var(--radius-sm); font-size: 14px; font-family: 'DM Sans', sans-serif;
+    color: var(--text); background: var(--surface); outline: none;
+    transition: border-color .15s;
+  }
+  .form-input:focus, .form-select:focus, .form-textarea:focus {
+    border-color: var(--accent);
+  }
+  .form-textarea { resize: vertical; min-height: 72px; }
+
+  .tipo-grid { display: grid; grid-template-columns: repeat(4,1fr); gap: 6px; }
+  .tipo-btn {
+    padding: 8px 4px; border-radius: var(--radius-sm);
+    border: 1px solid var(--border2); background: transparent;
+    font-size: 12px; font-weight: 500; color: var(--text2);
+    cursor: pointer; text-align: center; transition: all .15s;
+    font-family: 'DM Sans', sans-serif;
+  }
+  .tipo-btn.sel-prova { background: #fee2e2; color: #991b1b; border-color: #fca5a5; }
+  .tipo-btn.sel-entrega { background: #dcfce7; color: #166534; border-color: #86efac; }
+  .tipo-btn.sel-tarefa { background: #f1f0ec; color: #57534e; border-color: #d4d2cc; }
+  .tipo-btn.sel-remarcar { background: #fef3c7; color: #92570a; border-color: #fcd34d; }
+
+  .btn-save {
+    width: 100%; padding: 13px; border-radius: var(--radius);
+    background: var(--text); color: #fff; border: none;
+    font-size: 15px; font-weight: 600; cursor: pointer;
+    font-family: 'DM Sans', sans-serif; margin-top: 6px;
+    transition: opacity .15s;
+  }
+  .btn-save:hover { opacity: .9; }
+  .btn-save:disabled { opacity: .5; }
+
+  /* ── DETAIL MODAL ── */
+  .detail-chip {
+    display: inline-flex; align-items: center; gap: 5px;
+    font-size: 12px; padding: 4px 10px; border-radius: 20px;
+    margin-bottom: 12px;
+  }
+  .btn-delete {
+    width: 100%; padding: 12px; border-radius: var(--radius);
+    background: #fee2e2; color: #991b1b; border: none;
+    font-size: 14px; font-weight: 500; cursor: pointer;
+    font-family: 'DM Sans', sans-serif; margin-top: 10px;
+    transition: background .15s;
+  }
+  .btn-delete:hover { background: #fecaca; }
+
+  /* ── MATERIA VIEW ── */
+  .mat-block {
+    background: var(--surface); border: 1px solid var(--border);
+    border-radius: var(--radius); margin-bottom: 10px;
+    box-shadow: var(--shadow); overflow: hidden;
+  }
+  .mat-head {
+    display: flex; align-items: center; gap: 8px;
+    padding: 11px 14px; border-bottom: 1px solid var(--border);
+    font-size: 13px; font-weight: 600;
+  }
+  .mat-count {
+    margin-left: auto; font-size: 11px; color: var(--text3); font-weight: 400;
+  }
+  .mat-row {
+    display: flex; align-items: flex-start; gap: 10px;
+    padding: 9px 14px; border-bottom: 1px solid var(--border);
+  }
+  .mat-row:last-child { border-bottom: none; }
+  .mat-date { font-size: 11px; color: var(--text3); min-width: 80px; margin-top: 2px; }
+  .mat-info { flex: 1; }
+  .mat-title { font-size: 13px; font-weight: 500; }
+  .mat-desc { font-size: 12px; color: var(--text2); }
+
+  /* ── LOADING ── */
+  .loading {
+    text-align: center; padding: 48px; color: var(--text3); font-size: 14px;
+  }
+
+  @media (min-width: 480px) {
+    .app-header, .stats-row, .tabs-bar, .filter-bar, .events-area {
+      max-width: 480px; margin-left: auto; margin-right: auto;
+    }
+    .fab { right: calc(50% - 220px); }
+  }
+</style>
+</head>
+<body>
+
+<header class="app-header">
+  <div class="header-top">
+    <div class="avatar">AR</div>
+    <div>
+      <div class="header-name">Agenda do Arthur · Turma 601</div>
+      <div class="header-sub" id="headerSub">Carregando...</div>
+    </div>
+    <div class="sync-dot syncing" id="syncDot" title="Sincronizando"></div>
+  </div>
+</header>
+
+<div class="notice" id="notice"></div>
+
+<div class="stats-row">
+  <div class="stat"><div class="stat-label">Total</div><div class="stat-value" id="sTotal">—</div></div>
+  <div class="stat"><div class="stat-label">Provas</div><div class="stat-value" id="sProvas">—</div></div>
+  <div class="stat"><div class="stat-label">Entregas</div><div class="stat-value" id="sEntregas">—</div></div>
+  <div class="stat"><div class="stat-label">Tarefas</div><div class="stat-value" id="sTarefas">—</div></div>
+</div>
+
+<div class="tabs-bar">
+  <button class="tab active" onclick="setView('dia',this)">Por dia</button>
+  <button class="tab" onclick="setView('materia',this)">Por matéria</button>
+  <button class="tab" onclick="setView('semana',this)">Semana</button>
+</div>
+<div class="filter-bar">
+  <button class="filter active" onclick="setFilter('todos',this)">Todos</button>
+  <button class="filter" onclick="setFilter('prova',this)">Provas</button>
+  <button class="filter" onclick="setFilter('entrega',this)">Entregas</button>
+  <button class="filter" onclick="setFilter('tarefa',this)">Tarefas</button>
+</div>
+
+<div class="events-area" id="eventsArea">
+  <div class="loading">Conectando ao banco de dados...</div>
+</div>
+
+<button class="fab" onclick="openModal()" title="Adicionar evento">+</button>
+
+<!-- ADD MODAL -->
+<div class="modal-overlay" id="addModal">
+  <div class="modal">
+    <div class="modal-handle"></div>
+    <div class="modal-title">Novo evento</div>
+
+    <div class="form-group">
+      <label class="form-label">Matéria</label>
+      <select class="form-select" id="fMateria">
+        <option value="">Selecione...</option>
+        <option>Português</option>
+        <option>História</option>
+        <option>Inglês</option>
+        <option>Ciências</option>
+        <option>Geografia</option>
+        <option>Matemática</option>
+      </select>
+    </div>
+
+    <div class="form-group">
+      <label class="form-label">Título</label>
+      <input class="form-input" id="fTitulo" type="text" placeholder="Ex: Prova de Ciências — Capítulo 3">
+    </div>
+
+    <div class="form-group">
+      <label class="form-label">Data</label>
+      <input class="form-input" id="fData" type="date">
+    </div>
+
+    <div class="form-group">
+      <label class="form-label">Tipo</label>
+      <div class="tipo-grid">
+        <button class="tipo-btn" onclick="selTipo('prova',this)">📋 Prova</button>
+        <button class="tipo-btn" onclick="selTipo('entrega',this)">📎 Entrega</button>
+        <button class="tipo-btn" onclick="selTipo('tarefa',this)">✏️ Tarefa</button>
+        <button class="tipo-btn" onclick="selTipo('remarcar',this)">⏳ Remarcar</button>
+      </div>
+    </div>
+
+    <div class="form-group">
+      <label class="form-label">Descrição (opcional)</label>
+      <textarea class="form-textarea" id="fDesc" placeholder="Detalhes, capítulos, instruções..."></textarea>
+    </div>
+
+    <button class="btn-save" id="btnSave" onclick="saveEvent()">Salvar evento</button>
+  </div>
+</div>
+
+<!-- DETAIL MODAL -->
+<div class="modal-overlay" id="detailModal">
+  <div class="modal">
+    <div class="modal-handle"></div>
+    <div id="detailContent"></div>
+    <button class="btn-delete" id="btnDelete" onclick="deleteEvent()">Excluir evento</button>
+    <button class="btn-save" onclick="closeDetail()" style="margin-top:8px;background:var(--surface2);color:var(--text);">Fechar</button>
+  </div>
+</div>
+
+<!-- Firebase SDK -->
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
+import { getFirestore, collection, onSnapshot, addDoc, deleteDoc, doc, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+
+const firebaseConfig = {
+  apiKey: "AIzaSyBBZWszzZuErTTLi9H8aAtFLIiowbCTsmM",
+  authDomain: "arthur-agenda.firebaseapp.com",
+  projectId: "arthur-agenda",
+  storageBucket: "arthur-agenda.firebasestorage.app",
+  messagingSenderId: "950780703607",
+  appId: "1:950780703607:web:a97b0502d7953e6a056772"
+};
+
+const app = initializeApp(firebaseConfig);
+const db = getFirestore(app);
+
+const MATERIAS = {
+  'Português':  { cor: '#c04a20', bg: '#fdf0eb' },
+  'História':   { cor: '#9a6010', bg: '#fdf5e6' },
+  'Inglês':     { cor: '#1a5298', bg: '#eaf1fc' },
+  'Ciências':   { cor: '#2d7a3a', bg: '#eaf6ec' },
+  'Geografia':  { cor: '#0d6b56', bg: '#e5f5f1' },
+  'Matemática': { cor: '#5040b8', bg: '#eeecfc' },
+};
+
+let allEvents = [];
+let currentView = 'dia';
+let currentFilter = 'todos';
+let selectedTipo = '';
+let selectedEventId = null;
+
+window.setView = (v, el) => {
+  currentView = v;
+  document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+  el.classList.add('active');
+  render();
+};
+
+window.setFilter = (f, el) => {
+  currentFilter = f;
+  document.querySelectorAll('.filter').forEach(t => t.classList.remove('active'));
+  el.classList.add('active');
+  render();
+};
+
+window.selTipo = (tipo, el) => {
+  selectedTipo = tipo;
+  document.querySelectorAll('.tipo-btn').forEach(b => b.className = 'tipo-btn');
+  el.classList.add('sel-' + tipo);
+};
+
+window.openModal = () => {
+  selectedTipo = '';
+  document.querySelectorAll('.tipo-btn').forEach(b => b.className = 'tipo-btn');
+  document.getElementById('fMateria').value = '';
+  document.getElementById('fTitulo').value = '';
+  document.getElementById('fData').value = '';
+  document.getElementById('fDesc').value = '';
+  document.getElementById('addModal').classList.add('open');
+};
+
+document.getElementById('addModal').addEventListener('click', e => {
+  if (e.target === document.getElementById('addModal')) document.getElementById('addModal').classList.remove('open');
+});
+document.getElementById('detailModal').addEventListener('click', e => {
+  if (e.target === document.getElementById('detailModal')) closeDetail();
+});
+
+window.closeDetail = () => document.getElementById('detailModal').classList.remove('open');
+
+window.saveEvent = async () => {
+  const materia = document.getElementById('fMateria').value;
+  const titulo = document.getElementById('fTitulo').value.trim();
+  const data = document.getElementById('fData').value;
+  const desc = document.getElementById('fDesc').value.trim();
+  if (!materia || !titulo || !data || !selectedTipo) {
+    alert('Preencha matéria, título, data e tipo.');
+    return;
+  }
+  const btn = document.getElementById('btnSave');
+  btn.disabled = true; btn.textContent = 'Salvando...';
+  try {
+    await addDoc(collection(db, 'eventos'), {
+      materia, titulo, data, tipo: selectedTipo, desc,
+      criadoEm: serverTimestamp()
+    });
+    document.getElementById('addModal').classList.remove('open');
+  } catch(e) {
+    alert('Erro ao salvar: ' + e.message);
+  }
+  btn.disabled = false; btn.textContent = 'Salvar evento';
+};
+
+window.deleteEvent = async () => {
+  if (!selectedEventId) return;
+  if (!confirm('Excluir este evento?')) return;
+  try {
+    await deleteDoc(doc(db, 'eventos', selectedEventId));
+    closeDetail();
+  } catch(e) { alert('Erro: ' + e.message); }
+};
+
+function showDetail(ev) {
+  selectedEventId = ev.id;
+  const m = MATERIAS[ev.materia] || { cor:'#888', bg:'#eee' };
+  const badgeClass = { prova:'badge-prova', entrega:'badge-entrega', tarefa:'badge-tarefa', remarcar:'badge-remarcar' }[ev.tipo] || 'badge-tarefa';
+  const badgeLabel = { prova:'Prova', entrega:'Entrega', tarefa:'Tarefa', remarcar:'A remarcar' }[ev.tipo] || ev.tipo;
+  document.getElementById('detailContent').innerHTML = `
+    <div style="display:flex;align-items:center;gap:7px;margin-bottom:6px">
+      <span class="dot" style="background:${m.cor};width:9px;height:9px"></span>
+      <span style="font-size:13px;font-weight:600;color:${m.cor}">${ev.materia}</span>
+    </div>
+    <div style="font-size:18px;font-weight:600;margin-bottom:6px">${ev.titulo}</div>
+    <div style="font-size:13px;color:var(--text2);margin-bottom:10px">${formatDateFull(ev.data)}</div>
+    <span class="event-badge ${badgeClass}" style="margin-bottom:12px;display:inline-block">${badgeLabel}</span>
+    ${ev.desc ? `<div style="font-size:14px;color:var(--text2);margin-top:8px;padding:10px;background:var(--surface2);border-radius:var(--radius-sm)">${ev.desc}</div>` : ''}
+  `;
+  document.getElementById('detailModal').classList.add('open');
+}
+
+function parseDateStr(str) {
+  if (!str) return new Date(0);
+  const [y,m,d] = str.split('-').map(Number);
+  return new Date(y, m-1, d);
+}
+
+function formatDateFull(str) {
+  const d = parseDateStr(str);
+  const dias = ['Dom','Seg','Ter','Qua','Qui','Sex','Sáb'];
+  const meses = ['jan','fev','mar','abr','mai','jun','jul','ago','set','out','nov','dez'];
+  return dias[d.getDay()] + ', ' + d.getDate() + ' de ' + meses[d.getMonth()] + ' de ' + d.getFullYear();
+}
+
+function formatDayHeader(str) {
+  const d = parseDateStr(str);
+  const dias = ['DOM','SEG','TER','QUA','QUI','SEX','SÁB'];
+  const meses = ['JAN','FEV','MAR','ABR','MAI','JUN','JUL','AGO','SET','OUT','NOV','DEZ'];
+  return dias[d.getDay()] + ', ' + d.getDate() + ' DE ' + meses[d.getMonth()] + ' DE ' + d.getFullYear();
+}
+
+function badgeClass(tipo) { return 'event-badge badge-' + tipo; }
+function badgeLabel(tipo) { return {prova:'prova',entrega:'entrega',tarefa:'tarefa',remarcar:'a remarcar'}[tipo]||tipo; }
+function typeIcon(tipo) { return {prova:'📋',entrega:'📎',tarefa:'✏️',remarcar:'⏳'}[tipo]||'📌'; }
+
+function getFiltered() {
+  if (currentFilter === 'todos') return allEvents;
+  return allEvents.filter(e => e.tipo === currentFilter);
+}
+
+function updateStats() {
+  const evs = allEvents;
+  document.getElementById('sTotal').textContent = evs.length;
+  document.getElementById('sProvas').textContent = evs.filter(e=>e.tipo==='prova').length;
+  document.getElementById('sEntregas').textContent = evs.filter(e=>e.tipo==='entrega').length;
+  document.getElementById('sTarefas').textContent = evs.filter(e=>e.tipo==='tarefa').length;
+  document.getElementById('headerSub').textContent = evs.length === 0
+    ? 'Nenhum evento · 6 matérias'
+    : `${evs.length} evento${evs.length>1?'s':''} · 6 matérias`;
+
+  const rem = evs.filter(e=>e.tipo==='remarcar');
+  const n = document.getElementById('notice');
+  if (rem.length) {
+    n.style.display = 'block';
+    n.textContent = '⚠️ ' + rem.map(e => e.titulo).join(' · ');
+  } else { n.style.display = 'none'; }
+}
+
+function render() {
+  const evs = getFiltered();
+  const area = document.getElementById('eventsArea');
+  if (evs.length === 0) {
+    area.innerHTML = `<div class="empty"><div class="empty-icon">📅</div>Nenhum evento encontrado.<br>Toque no <strong>+</strong> para adicionar ou cole prints do ClipEscola aqui.</div>`;
+    return;
+  }
+  if (currentView === 'dia') renderDia(area, evs);
+  else if (currentView === 'materia') renderMateria(area, evs);
+  else renderSemana(area, evs);
+}
+
+function renderDia(area, evs) {
+  const byDay = {};
+  evs.forEach(e => {
+    if (!byDay[e.data]) byDay[e.data] = {};
+    if (!byDay[e.data][e.materia]) byDay[e.data][e.materia] = [];
+    byDay[e.data][e.materia].push(e);
+  });
+  const days = Object.keys(byDay).sort();
+  let html = '';
+  days.forEach(day => {
+    html += `<div class="day-header">${formatDayHeader(day)}</div>`;
+    Object.keys(byDay[day]).forEach(mat => {
+      const m = MATERIAS[mat]||{cor:'#888',bg:'#eee'};
+      html += `<div class="materia-label"><span class="dot" style="background:${m.cor}"></span>${mat}</div>`;
+      byDay[day][mat].forEach(ev => {
+        html += `<div class="event-card" onclick="showDetailById('${ev.id}')">
+          <div class="event-icon">${typeIcon(ev.tipo)}</div>
+          <div class="event-body">
+            <div class="event-title">${ev.titulo}</div>
+            ${ev.desc?`<div class="event-desc">${ev.desc}</div>`:''}
+          </div>
+          <span class="${badgeClass(ev.tipo)}">${badgeLabel(ev.tipo)}</span>
+        </div>`;
+      });
+    });
+  });
+  area.innerHTML = html;
+}
+
+function renderMateria(area, evs) {
+  const byMat = {};
+  evs.forEach(e => { if(!byMat[e.materia])byMat[e.materia]=[]; byMat[e.materia].push(e); });
+  let html = '';
+  Object.keys(byMat).sort().forEach(mat => {
+    const m = MATERIAS[mat]||{cor:'#888',bg:'#eee'};
+    html += `<div class="mat-block">
+      <div class="mat-head" style="background:${m.bg}">
+        <span class="dot" style="background:${m.cor}"></span>
+        <span style="color:${m.cor}">${mat}</span>
+        <span class="mat-count">${byMat[mat].length} evento${byMat[mat].length>1?'s':''}</span>
+      </div>`;
+    byMat[mat].sort((a,b)=>a.data.localeCompare(b.data)).forEach(ev => {
+      html += `<div class="mat-row" onclick="showDetailById('${ev.id}')" style="cursor:pointer">
+        <div class="mat-date">${formatDateFull(ev.data)}</div>
+        <div class="mat-info">
+          <div class="mat-title">${ev.titulo}</div>
+          ${ev.desc?`<div class="mat-desc">${ev.desc}</div>`:''}
+        </div>
+        <span class="${badgeClass(ev.tipo)}">${badgeLabel(ev.tipo)}</span>
+      </div>`;
+    });
+    html += '</div>';
+  });
+  area.innerHTML = html;
+}
+
+function renderSemana(area, evs) {
+  function getWeek(str) {
+    const d = parseDateStr(str);
+    const day = d.getDay();
+    const mon = new Date(d); mon.setDate(d.getDate() - (day===0?6:day-1));
+    const fri = new Date(mon); fri.setDate(mon.getDate()+4);
+    const fmt = x => x.getDate()+'/'+(x.getMonth()+1);
+    return { key: mon.toISOString().substring(0,10), label: `Semana de ${fmt(mon)} a ${fmt(fri)}/${fri.getFullYear()}` };
+  }
+  const byWeek = {};
+  const labels = {};
+  evs.forEach(e => {
+    const w = getWeek(e.data);
+    if(!byWeek[w.key])byWeek[w.key]=[];
+    byWeek[w.key].push(e);
+    labels[w.key] = w.label;
+  });
+  let html = '';
+  Object.keys(byWeek).sort().forEach(wk => {
+    html += `<div class="mat-block">
+      <div class="mat-head" style="background:var(--surface2)">
+        <span style="font-size:14px">📅</span>
+        <span>${labels[wk]}</span>
+        <span class="mat-count">${byWeek[wk].length} evento${byWeek[wk].length>1?'s':''}</span>
+      </div>`;
+    byWeek[wk].sort((a,b)=>a.data.localeCompare(b.data)).forEach(ev => {
+      const m = MATERIAS[ev.materia]||{cor:'#888'};
+      html += `<div class="mat-row" onclick="showDetailById('${ev.id}')" style="cursor:pointer">
+        <div class="mat-date" style="display:flex;align-items:center;gap:5px">
+          <span class="dot" style="background:${m.cor}"></span>
+          ${formatDateFull(ev.data)}
+        </div>
+        <div class="mat-info">
+          <div class="mat-title">${ev.titulo}</div>
+          ${ev.desc?`<div class="mat-desc">${ev.desc}</div>`:''}
+        </div>
+        <span class="${badgeClass(ev.tipo)}">${badgeLabel(ev.tipo)}</span>
+      </div>`;
+    });
+    html += '</div>';
+  });
+  area.innerHTML = html;
+}
+
+window.showDetailById = (id) => {
+  const ev = allEvents.find(e => e.id === id);
+  if (ev) showDetail(ev);
+};
+
+// Firestore listener
+const dot = document.getElementById('syncDot');
+onSnapshot(collection(db, 'eventos'), (snapshot) => {
+  allEvents = snapshot.docs.map(d => ({ id: d.id, ...d.data() }))
+    .sort((a,b) => a.data?.localeCompare(b.data));
+  updateStats();
+  render();
+  dot.className = 'sync-dot';
+  dot.title = 'Sincronizado';
+}, (err) => {
+  dot.className = 'sync-dot offline';
+  dot.title = 'Sem conexão';
+  document.getElementById('eventsArea').innerHTML = `<div class="empty"><div class="empty-icon">⚠️</div>Erro de conexão com o banco de dados.<br>Verifique sua internet.</div>`;
+});
+</script>
+
+</body>
+</html>
